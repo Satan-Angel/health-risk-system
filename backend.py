@@ -325,9 +325,13 @@ def health_check():
 
 # ─── Run ────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
+    import os
+    port = int(os.environ.get("PORT", 5000))
+
     print("=" * 50)
     print("  Health Risk Management API")
-    print("  Running at http://localhost:5000")
+    print(f"  Running at http://localhost:{port}")
     print("  Frontend: open index.html in browser")
     print("=" * 50)
-    app.run(debug=True, port=5000)
+
+    app.run(host="0.0.0.0", port=port)
