@@ -344,12 +344,7 @@ header {
     <div class="panel-title">Enter your <em>health data</em></div>
     <div class="panel-sub">Fill in the form and click Analyse to receive your personalised risk report.</div>
 
-    <div class="api-strip">
-      <div class="api-row">
-        <input type="text" id="api-base" value="https://health-risk-system.onrender.com" />
-        <button class="btn-connect" onclick="checkAPI()">Connect</button>
-      </div>
-    </div>
+  
 
     <!-- Personal -->
     <div class="form-section">
@@ -515,7 +510,6 @@ function setStress(v) {
 }
 
 async function checkAPI() {
-  API = document.getElementById('api-base').value.trim().replace(/\/$/, '');
   const dot = document.getElementById('api-dot');
   const lbl = document.getElementById('api-label');
   dot.className = 'status-dot'; lbl.textContent = 'Connecting…';
