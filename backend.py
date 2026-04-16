@@ -18,6 +18,36 @@ def calc_bmi(weight_kg, height_cm):
     h = height_cm / 100
     return round(weight_kg / (h * h), 1)
 
+def bmi_fuzzy_membership(bmi):
+    # Underweight
+    if bmi <= 18:
+        under = 1
+    elif 18 < bmi < 22:
+        under = (22 - bmi) / (22 - 18)
+    else:
+        under = 0
+    # Normal
+    if bmi <= 18 or bmi >= 26:
+        normal = 0
+    elif 18 < bmi <= 22:
+        normal = (bmi - 18) / (22 - 18)
+    else:
+        normal = (26 - bmi) / (26 - 22)
+    # Overweight
+    if bmi <= 24:
+        over = 0
+    elif 24 < bmi < 28:
+        over = (bmi - 24) / (28 - 24)
+    else:
+        over = 1
+    return {
+        "underweight": round(under, 2),
+        "normal": round(normal, 2),
+        "overweight": round(over, 2)
+    }                                                                                                                                                                                                                                                                                                                     
+def fuzzy_bmi_label(memberships):
+    return max(memberships, key=memberships.get)
+
 def bmi_category(bmi):
     if bmi < 18.5:
         return "Underweight", "low"
@@ -287,7 +317,8 @@ def assess():
 
     try:
         bmi = calc_bmi(data["weight_kg"], data["height_cm"])
-        bmi_cat, _ = bmi_category(bmi)
+        bmi_membership = bmi_fuzzy_membership(bmi)
+        bmi_cat = fuzzy_bmi_label(bmi_membership)
         health_score = calc_health_score(data)
         risk_factors = build_risk_factors(data)
         recommendations = build_recommendations(data, health_score)
@@ -300,11 +331,11 @@ def assess():
             "score_label": "Excellent" if health_score >= 85 else "Good" if health_score >= 70 else "Fair" if health_score >= 55 else "Poor",
             "bmi": bmi,
             "bmi_category": bmi_cat,
+            "bmi_membership": bmi_membership,
             "risk_factors": risk_factors,
             "recommendations": recommendations,
             "summary": f"Hello {data.get('name','there')}. Your health score is {health_score}/100 ({('Excellent' if health_score >= 85 else 'Good' if health_score >= 70 else 'Fair' if health_score >= 55 else 'Poor')}). {risk_summary}"
         })
-
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -314,8 +345,14 @@ def bmi_only():
     """Quick BMI endpoint. Body: { "weight_kg": 83.5, "height_cm": 175 }"""
     data = request.get_json()
     bmi = calc_bmi(data["weight_kg"], data["height_cm"])
-    cat, level = bmi_category(bmi)
-    return jsonify({"bmi": bmi, "category": cat, "level": level})
+    membership = bmi_fuzzy_membership(bmi)
+    cat = fuzzy_bmi_label(membership)
+
+    return jsonify({
+    "bmi": bmi,
+    "category": cat,
+    "membership": membership
+    })
 
 
 @app.route("/api/health", methods=["GET"])
