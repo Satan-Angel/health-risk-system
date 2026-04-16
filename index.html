@@ -319,6 +319,19 @@ header {
   .fg3 { grid-template-columns: 1fr 1fr; }
   header { padding: 14px 20px; }
 }
+.bmi-bar {
+  height: 6px;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.08);
+  margin-top: 6px;
+  overflow: hidden;
+}
+.bmi-fill {
+  height: 100%;
+}
+.bmi-u { background: #60b4ff; }
+.bmi-n { background: #4ade91; }
+.bmi-o { background: #ffb347; }
 </style>
 </head>
 <body>
@@ -477,7 +490,11 @@ header {
         <div>
           <div class="score-pill" id="res-pill">—</div>
           <div class="score-summary" id="res-summary">—</div>
-          <div class="score-meta">BMI: <b id="res-bmi">—</b> &nbsp;·&nbsp; <b id="res-bmi-cat">—</b></div>
+          <div class="score-meta">
+          BMI: <b id="res-bmi">—</b> &nbsp;·&nbsp; <b id="res-bmi-cat">—</b>
+          </div>
+
+          <div id="bmi-membership" style="margin-top:10px; font-size:12px; color: var(--muted);"></div>
         </div>
       </div>
 
@@ -601,6 +618,26 @@ function renderResults(data) {
   document.getElementById('res-summary').textContent = data.summary;
   document.getElementById('res-bmi').textContent     = data.bmi;
   document.getElementById('res-bmi-cat').textContent = data.bmi_category;
+  // BMI Membership (Fuzzy Display)
+  if (data.bmi_membership) {
+  const m = data.bmi_membership;
+  const u = Math.round(m.underweight * 100);
+  const n = Math.round(m.normal * 100);
+  const o = Math.round(m.overweight * 100);
+  document.getElementById('bmi-membership').innerHTML = `
+    <div>Underweight: ${u}%</div>
+    <div class="bmi-bar"><div class="bmi-fill bmi-u" style="width:${u}%"></div></div>
+
+    <div style="margin-top:6px;">Normal: ${n}%</div>
+    <div class="bmi-bar"><div class="bmi-fill bmi-n" style="width:${n}%"></div></div>
+
+    <div style="margin-top:6px;">Overweight: ${o}%</div>
+    <div class="bmi-bar"><div class="bmi-fill bmi-o" style="width:${o}%"></div></div>
+  `;
+  } 
+  else {
+  document.getElementById('bmi-membership').innerHTML = '';
+  }
 
   const dotCol = { normal:'#4ade91', medium:'#ffb347', high:'#ff6b6b', critical:'#cc2200' };
   const bCls   = { normal:'b-normal', medium:'b-medium', high:'b-high', critical:'b-critical' };
