@@ -381,10 +381,6 @@ header {
             <option value="other">Prefer not to say</option>
           </select>
         </div>
-        <div class="field">
-          <label>Known conditions</label>
-          <input type="text" id="f-conditions" placeholder="e.g. asthma, diabetes" />
-        </div>
       </div>
     </div>
 
@@ -570,7 +566,6 @@ async function submitAssessment() {
     smoking:        document.getElementById('f-smoking').value,
     activity_level: document.getElementById('f-activity').value,
     stress_level:   parseInt(document.getElementById('f-stress').value),
-    conditions:     document.getElementById('f-conditions').value,
   };
 
   btn.disabled = true;

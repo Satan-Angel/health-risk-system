@@ -1,7 +1,7 @@
 """
 Health Risk Management Backend
 Run with:  pip install flask flask-cors  &&  python app.py
-API runs at: http://localhost:5000
+API runs at: https://satan-angel.github.io/health-risk-system/
 """
 
 from flask import Flask, request, jsonify
@@ -318,7 +318,13 @@ def assess():
     try:
         bmi = calc_bmi(data["weight_kg"], data["height_cm"])
         bmi_membership = bmi_fuzzy_membership(bmi)
-        bmi_cat = fuzzy_bmi_label(bmi_membership)
+        bmi_label_map = {
+        "underweight": "Underweight",
+        "normal": "Normal weight",
+        "overweight": "Overweight"
+        }
+
+        bmi_cat = bmi_label_map[fuzzy_bmi_label(bmi_membership)]
         health_score = calc_health_score(data)
         risk_factors = build_risk_factors(data)
         recommendations = build_recommendations(data, health_score)
