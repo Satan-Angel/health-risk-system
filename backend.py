@@ -19,32 +19,35 @@ def calc_bmi(weight_kg, height_cm):
     return round(weight_kg / (h * h), 1)
 
 def bmi_fuzzy_membership(bmi):
-    # Underweight
+    # Underweight (triangle: 0–18–22)
     if bmi <= 18:
         under = 1
     elif 18 < bmi < 22:
-        under = (22 - bmi) / (22 - 18)
+        under = (22 - bmi) / 4
     else:
         under = 0
-    # Normal
+
+    # Normal (triangle: 18–22–26)
     if bmi <= 18 or bmi >= 26:
         normal = 0
-    elif 18 < bmi <= 22:
-        normal = (bmi - 18) / (22 - 18)
-    else:
-        normal = (26 - bmi) / (26 - 22)
-    # Overweight
+    elif 18 < bmi < 22:
+        normal = (bmi - 18) / 4
+    elif 22 <= bmi < 26:
+        normal = (26 - bmi) / 4
+
+    # Overweight (triangle: 24–28–∞)
     if bmi <= 24:
         over = 0
     elif 24 < bmi < 28:
-        over = (bmi - 24) / (28 - 24)
+        over = (bmi - 24) / 4
     else:
         over = 1
+
     return {
         "underweight": round(under, 2),
         "normal": round(normal, 2),
         "overweight": round(over, 2)
-    }                                                                                                                                                                                                                                                                                                                     
+    }                                                                                                                                                                                                                                                                                                   
 def fuzzy_bmi_label(memberships):
     return max(memberships, key=memberships.get)
 

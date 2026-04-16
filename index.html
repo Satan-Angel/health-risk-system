@@ -616,20 +616,34 @@ function renderResults(data) {
   // BMI Membership (Fuzzy Display)
   if (data.bmi_membership) {
   const m = data.bmi_membership;
-  const u = Math.round(m.underweight * 100);
-  const n = Math.round(m.normal * 100);
-  const o = Math.round(m.overweight * 100);
+
+  let u = m.underweight || 0;
+  let n = m.normal || 0;
+  let o = m.overweight || 0;
+
+  const total = u + n + o || 1;
+
+  u = Math.round((u / total) * 100);
+  n = Math.round((n / total) * 100);
+  o = Math.round((o / total) * 100);
+
   document.getElementById('bmi-membership').innerHTML = `
     <div>Underweight: ${u}%</div>
-    <div class="bmi-bar"><div class="bmi-fill bmi-u" style="width:${u}%"></div></div>
+    <div class="bmi-bar">
+      <div class="bmi-fill bmi-u" style="width:${u}%; min-width:4px;"></div>
+    </div>
 
     <div style="margin-top:6px;">Normal: ${n}%</div>
-    <div class="bmi-bar"><div class="bmi-fill bmi-n" style="width:${n}%"></div></div>
+    <div class="bmi-bar">
+      <div class="bmi-fill bmi-n" style="width:${n}%; min-width:4px;"></div>
+    </div>
 
     <div style="margin-top:6px;">Overweight: ${o}%</div>
-    <div class="bmi-bar"><div class="bmi-fill bmi-o" style="width:${o}%"></div></div>
+    <div class="bmi-bar">
+      <div class="bmi-fill bmi-o" style="width:${o}%; min-width:4px;"></div>
+    </div>
   `;
-  } 
+  }
   else {
   document.getElementById('bmi-membership').innerHTML = '';
   }
