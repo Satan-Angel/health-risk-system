@@ -6,13 +6,38 @@ API runs at: https://satan-angel.github.io/health-risk-system/
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import math
+import sqlite3
+from datetime import datetime
 
 app = Flask(__name__)
 CORS(app)  # Allow frontend to call the API
 
-
 # ─── Helpers ────────────────────────────────────────────────────────────────
+def init_db():
+    conn = sqlite3.connect("health_data.db")
+    c = conn.cursor()
+
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS assessments (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT,
+        age INTEGER,
+        score INTEGER,
+        bmi REAL,
+        systolic INTEGER,
+        diastolic INTEGER,
+        glucose INTEGER,
+        sleep REAL,
+        stress INTEGER,
+        smoking TEXT,
+        activity TEXT,
+        timestamp TEXT
+    )
+    """)
+
+    conn.commit()
+    conn.close()
+init_db()
 
 def calc_bmi(weight_kg, height_cm):
     h = height_cm / 100
@@ -90,7 +115,7 @@ def glucose_category(glucose, fasting=True):
 def sleep_category(hours):
     if hours >= 7 and hours <= 9:
         return "Optimal", "normal"
-    elif hours >= 6 or hours == 9.5:
+    elif 6 <= hours < 7 or hours > 9:
         return "Borderline", "medium"
     else:
         return "Insufficient", "high"
@@ -318,24 +343,53 @@ def assess():
     if missing:
         return jsonify({"error": f"Missing fields: {', '.join(missing)}"}), 400
 
-    try:
-        bmi = calc_bmi(data["weight_kg"], data["height_cm"])
-        bmi_membership = bmi_fuzzy_membership(bmi)
-        bmi_label_map = {
+try:
+    bmi = calc_bmi(data["weight_kg"], data["height_cm"])
+    bmi_membership = bmi_fuzzy_membership(bmi)
+
+    bmi_label_map = {
         "underweight": "Underweight",
         "normal": "Normal weight",
         "overweight": "Overweight"
-        }
+    }
 
-        bmi_cat = bmi_label_map[fuzzy_bmi_label(bmi_membership)]
-        health_score = calc_health_score(data)
-        risk_factors = build_risk_factors(data)
-        recommendations = build_recommendations(data, health_score)
+    bmi_cat = bmi_label_map[fuzzy_bmi_label(bmi_membership)]
+    health_score = calc_health_score(data)
+    risk_factors = build_risk_factors(data)
+    recommendations = build_recommendations(data, health_score)
 
-        high_risks = [r for r in risk_factors if r["level"] in ("high", "critical")]
-        risk_summary = f"{len(high_risks)} high-priority risk factor(s) identified." if high_risks else "No high-priority risks detected."
+    # ─── SAVE TO SQLITE DATABASE ───
+    conn = sqlite3.connect("health_data.db")
+    c = conn.cursor()
 
-        return jsonify({
+    c.execute("""
+    INSERT INTO assessments (
+        name, age, score, bmi,
+        systolic, diastolic, glucose,
+        sleep, stress, smoking, activity, timestamp
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        data.get("name"),
+        data.get("age"),
+        health_score,
+        bmi,
+        data.get("systolic"),
+        data.get("diastolic"),
+        data.get("glucose"),
+        data.get("sleep_hours"),
+        data.get("stress_level"),
+        data.get("smoking"),
+        data.get("activity_level"),
+        datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    ))
+
+    conn.commit()
+    conn.close()
+    high_risks = [r for r in risk_factors if r["level"] in ("high", "critical")]
+     risk_summary = f"{len(high_risks)} high-priority risk factor(s) identified." if high_risks else "No high-priority risks detected."
+
+    return jsonify({
             "health_score": health_score,
             "score_label": "Excellent" if health_score >= 85 else "Good" if health_score >= 70 else "Fair" if health_score >= 55 else "Poor",
             "bmi": bmi,
@@ -344,7 +398,7 @@ def assess():
             "risk_factors": risk_factors,
             "recommendations": recommendations,
             "summary": f"Hello {data.get('name','there')}. Your health score is {health_score}/100 ({('Excellent' if health_score >= 85 else 'Good' if health_score >= 70 else 'Fair' if health_score >= 55 else 'Poor')}). {risk_summary}"
-        })
+    })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -362,7 +416,29 @@ def bmi_only():
     "category": cat,
     "membership": membership
     })
+@app.route("/api/history", methods=["GET"])
+def get_history():
+    conn = sqlite3.connect("health_data.db")
+    c = conn.cursor()
 
+    c.execute("""
+    SELECT name, score, bmi, timestamp
+    FROM assessments
+    ORDER BY id DESC
+    """)
+    
+    rows = c.fetchall()
+    conn.close()
+
+    return jsonify([
+        {
+            "name": r[0],
+            "score": r[1],
+            "bmi": r[2],
+            "date": r[3]
+        }
+        for r in rows
+    ])
 
 @app.route("/api/health", methods=["GET"])
 def health_check():
