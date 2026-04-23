@@ -654,7 +654,18 @@ function renderResults(data) {
 }
 
   const trendEl = document.getElementById('res-trend');
-  trendEl.textContent = trendText;
+  trendEl.innerHTML = `
+  <span style="
+    padding:3px 8px;
+    border-radius:12px;
+    background:${trendColor}20;
+    color:${trendColor};
+    font-size:11px;
+    font-weight:600;
+  ">
+    ${trendText}
+  </span>
+`;
   trendEl.style.color = trendColor;
 
 // STEP 5 END
