@@ -626,7 +626,7 @@ function renderResults(data) {
   // STEP 5 START
 
   const prev = getPreviousRecord();
-  const prevScore = prev ? prev.score : null;
+  const prevScore = prev?.score ?? null;
   const trend = calculateTrend(data.health_score, prevScore);
 
 // Save current AFTER getting previous
