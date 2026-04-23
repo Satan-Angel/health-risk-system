@@ -637,22 +637,25 @@ function renderResults(data) {
   prevScore !== null ? prevScore : 'N/A';
 
 // Show trend
-  let trendText = 'No previous data';
+  let trendText = 'No previous data';  
   let trendColor = '#888';
 
   if (trend === 'increasing') {
-  trendText = 'Increasing ⚠️';
-  trendColor = '#ff6b6b';
+  trendText = 'Improving Health ✅';
+  trendColor = '#4ade91';
 }
   else if (trend === 'decreasing') {
-  trendText = 'Improving ✅';
-  trendColor = '#4ade91';
+  trendText = 'Health Declining ⚠️';
+  trendColor = '#ff6b6b';
 }
   else if (trend === 'stable') {
   trendText = 'Stable';
   trendColor = '#60b4ff';
 }
-
+  else {
+  trendText = 'No previous data';
+  trendColor = '#888';
+}
   const trendEl = document.getElementById('res-trend');
   trendEl.innerHTML = `
   <span style="
