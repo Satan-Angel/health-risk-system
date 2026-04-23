@@ -536,8 +536,8 @@ function getPreviousRecord() {
 
 function calculateTrend(current, previous) {
   if (!previous) return "no_data";
-  if (current > previous) return "increasing";
-  if (current < previous) return "decreasing";
+  if (current < previous) return "increasing";
+  if (current > previous) return "decreasing";
   return "stable";
 }
 
